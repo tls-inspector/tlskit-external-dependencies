@@ -1,0 +1,16 @@
+framework module Curl {
+    header "shim.h"
+    header "curl.h"
+    header "curlver.h"
+    header "easy.h"
+    header "header.h"
+    header "mprintf.h"
+    header "multi.h"
+    header "options.h"
+    header "stdcheaders.h"
+    header "system.h"
+    header "typecheck-gcc.h"
+    header "urlapi.h"
+    header "websockets.h"
+    export *
+}

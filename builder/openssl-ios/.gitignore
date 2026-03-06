@@ -1,0 +1,10 @@
+.DS_Store
+build/
+*.xcframework/
+*.tar
+*.tar.gz
+*.tar.gz.asc
+*.tar.xz
+*.tar.xz.asc
+*.zip
+*.zip.sig
