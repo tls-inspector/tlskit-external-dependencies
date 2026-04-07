@@ -21,7 +21,7 @@ import PackageDescription
 let package = Package(
     name: "tlskit-external-dependencies",
     platforms: [
-        .iOS(.v12)
+        .iOS(.v15)
     ],
     products: [
         .library(
@@ -36,5 +36,5 @@ let package = Package(
     targets: [
         .binaryTarget(name: "Curl", path: "curl.xcframework"),
         .binaryTarget(name: "OpenSSL", path: "openssl.xcframework"),
-    ]
+    ],
 )

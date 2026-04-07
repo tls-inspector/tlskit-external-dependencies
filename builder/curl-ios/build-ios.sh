@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+if [[ "$DEBUG" == "1" ]]; then
+    set -x
+fi
+
 ################
 # PROCESS ARGS #
 ################
@@ -12,9 +16,9 @@ ROOTCA_VERSION=0
 ROOTCA_BUNDLE_NAME="apple"
 SWIFT=0
 USE_GH_CLI=0
-IOS_TARGET=12.0
+IOS_TARGET=0
 
-while getopts :c:o:r:n:vsg OPTION; do
+while getopts :c:o:r:n:i:vsg OPTION; do
     case $OPTION in
         c) CURL_VERSION=$OPTARG;;
         o) OPENSSL_VERSION=$OPTARG;;
@@ -140,6 +144,11 @@ function build() {
     SDKDIR=$(xcrun --sdk ${SDK} --show-sdk-path)
     LOG="../${ARCH}-${SDK}_build.log"
 
+    TARGET=""
+    if [[ "${SDK}" == "iphonesimulator" ]]; then
+        TARGET="-simulator"
+    fi
+
     WORKDIR=curl_${ARCH}-${SDK}
     mkdir "${WORKDIR}"
     tar -xzf "../${ARCHIVE}" -C "${WORKDIR}" --strip-components 1
@@ -155,10 +164,10 @@ function build() {
     perl -pi -e "s,/Users/runner/work/openssl-ios/openssl-ios/build/openssl_${ARCH}-${SDK}/artifacts,${OPENSSL_ARTIFACTS},g" ${OPENSSL_ARTIFACTS}/lib/pkgconfig/*.pc
 
     export CC=$(xcrun -find -sdk ${SDK} gcc)
-    export CFLAGS="-arch ${ARCH} -pipe -Os -gdwarf-2 -isysroot ${SDKDIR} -m${SDK}-version-min=${IOS_TARGET}"
+    export CFLAGS="-arch ${ARCH} -pipe -Os -gdwarf-2 -isysroot ${SDKDIR} -target ${ARCH}-apple-ios${IOS_TARGET}${TARGET}"
     export LDFLAGS="-arch ${ARCH} -isysroot ${SDKDIR}"
 
-    CONFIGURE_ARGS="${BUILD_ARGS} --disable-shared --enable-static --without-libpsl --with-ca-embed=${CA_EMBED} --with-openssl=${OPENSSL_ARTIFACTS}"
+    CONFIGURE_ARGS="${BUILD_ARGS} --disable-shared --enable-static --without-libpsl --with-ca-embed=${CA_EMBED} --with-openssl=${OPENSSL_ARTIFACTS} ac_cv_func_pipe2=no"
 
     echo "build variables: CC=\"${CC}\" CFLAGS=\"${CFLAGS}\" CPPFLAGS=\"${CPPFLAGS}\" LDFLAGS=\"${LDFLAGS}\"" >> "${LOG}"
     echo "configure parameters: --host=\"${HOST}-apple-darwin\" ${CONFIGURE_ARGS} --prefix $(pwd)/artifacts" >> "${LOG}"
@@ -208,9 +217,12 @@ xcodebuild -create-xcframework \
     -framework ${BUILDDIR}/iphonesimulator/curl.framework \
     -output curl.xcframework
 plutil -insert CFBundleVersion -string ${CURL_VERSION} curl.xcframework/Info.plist
+plutil -insert MinimumOSVersion -string ${IOS_TARGET} curl.xcframework/Info.plist
 
 cp ${BUILDDIR}/../Info.plist ${BUILDDIR}/iphoneos/curl.framework
 cp ${BUILDDIR}/../Info.plist ${BUILDDIR}/iphonesimulator/curl.framework
+plutil -insert MinimumOSVersion -string ${IOS_TARGET} ${BUILDDIR}/iphoneos/curl.framework/Info.plist
+plutil -insert MinimumOSVersion -string ${IOS_TARGET} ${BUILDDIR}/iphonesimulator/curl.framework/Info.plist
 
 if [[ $SWIFT == 1 ]]; then
     ./inject_module_map.sh iphoneos

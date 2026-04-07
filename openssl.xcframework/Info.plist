@@ -40,6 +40,8 @@
 	<string>XFWK</string>
 	<key>CFBundleVersion</key>
 	<string>3.6.1</string>
+	<key>MinimumOSVersion</key>
+	<string>15.0</string>
 	<key>XCFrameworkFormatVersion</key>
 	<string>1.0</string>
 </dict>

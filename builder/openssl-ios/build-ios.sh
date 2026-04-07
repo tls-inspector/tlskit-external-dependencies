@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+if [[ "$DEBUG" == "1" ]]; then
+    set -x
+fi
+
 ################
 # PROCESS ARGS #
 ################
@@ -9,7 +13,7 @@ VERIFY=0
 OPENSSL_VERSION=0
 SWIFT=0
 USE_GH_CLI=0
-IOS_TARGET=12.0
+IOS_TARGET=0
 
 while getopts :o:i:vsg OPTION; do
     case $OPTION in
@@ -86,6 +90,11 @@ function build() {
     SDKDIR=$(xcrun --sdk ${SDK} --show-sdk-path)
     LOG="../${ARCH}-${SDK}_build.log"
 
+    TARGET=""
+    if [[ "${SDK}" == "iphonesimulator" ]]; then
+        TARGET="-simulator"
+    fi
+
     WORKDIR=openssl_${ARCH}-${SDK}
     mkdir "${WORKDIR}"
     tar -xzf "../${ARCHIVE}" -C "${WORKDIR}" --strip-components 1
@@ -96,8 +105,8 @@ function build() {
     done
 
     export CC=$(xcrun -find -sdk ${SDK} clang)
-    export CFLAGS="-arch ${ARCH} -pipe -Os -gdwarf-2 -isysroot ${SDKDIR} -m${SDK}-version-min=${IOS_TARGET}"
-    export LDFLAGS="-arch ${ARCH} -isysroot ${SDKDIR}"
+    export CFLAGS="-arch ${ARCH} -pipe -Os -gdwarf-2 -isysroot ${SDKDIR} -target ${ARCH}-apple-ios${IOS_TARGET}${TARGET}"
+    export LDFLAGS="-arch ${ARCH} -isysroot ${SDKDIR} -target ${ARCH}-apple-ios${IOS_TARGET}${TARGET}"
 
     CONFIGURE_ARGS="${BUILD_ARGS} -no-shared -no-ui-console -no-tests -no-legacy -no-ssl2 -no-ssl3 -no-asm -no-weak-ssl-ciphers"
 
@@ -165,6 +174,8 @@ cp -r ${BUILDDIR}/openssl_arm64-iphonesimulator/artifacts/include/openssl/*.h ${
 
 cp ${BUILDDIR}/../Info.plist ${BUILDDIR}/iphoneos/openssl.framework
 cp ${BUILDDIR}/../Info.plist ${BUILDDIR}/iphonesimulator/openssl.framework
+plutil -insert MinimumOSVersion -string ${IOS_TARGET} ${BUILDDIR}/iphoneos/openssl.framework/Info.plist
+plutil -insert MinimumOSVersion -string ${IOS_TARGET} ${BUILDDIR}/iphonesimulator/openssl.framework/Info.plist
 
 if [[ $SWIFT == 1 ]]; then
     ./inject_module_map.sh iphoneos
@@ -177,6 +188,7 @@ xcodebuild -create-xcframework \
     -framework ${BUILDDIR}/iphonesimulator/openssl.framework \
     -output openssl.xcframework
 plutil -insert CFBundleVersion -string ${OPENSSL_VERSION} openssl.xcframework/Info.plist
+plutil -insert MinimumOSVersion -string ${IOS_TARGET} openssl.xcframework/Info.plist
 
 rm -f openssl.tar openssl.tar.xz openssl-${OPENSSL_VERSION}.tar.xz
 tar -cf openssl.tar build/openssl_*/artifacts/
