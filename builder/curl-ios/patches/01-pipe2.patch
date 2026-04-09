@@ -1,0 +1,54 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e93669eb1f..b4c34650d6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1646,7 +1646,6 @@ check_symbol_exists("getaddrinfo"     "${CURL_INCLUDES};stdlib.h;string.h" HAVE_
+ check_symbol_exists("getifaddrs"      "${CURL_INCLUDES};stdlib.h" HAVE_GETIFADDRS)  # ifaddrs.h
+ check_symbol_exists("freeaddrinfo"    "${CURL_INCLUDES}" HAVE_FREEADDRINFO)  # ws2tcpip.h sys/socket.h netdb.h
+ check_function_exists("pipe"          HAVE_PIPE)
+-check_function_exists("pipe2"         HAVE_PIPE2)
+ check_function_exists("eventfd"       HAVE_EVENTFD)
+ check_symbol_exists("getpeername"     "${CURL_INCLUDES}" HAVE_GETPEERNAME)  # winsock2.h unistd.h proto/bsdsocket.h
+ check_symbol_exists("getsockname"     "${CURL_INCLUDES}" HAVE_GETSOCKNAME)  # winsock2.h unistd.h proto/bsdsocket.h
+@@ -1654,6 +1653,13 @@ check_function_exists("getrlimit"     HAVE_GETRLIMIT)
+ check_function_exists("setlocale"     HAVE_SETLOCALE)
+ check_function_exists("setrlimit"     HAVE_SETRLIMIT)
+ 
++if(NOT APPLE)
++  # pipe2() is not implemented on Apple platform, but an iPhone Simulator-specific
++  # /usr/lib/system/libsystem_sim_kernel.dylib exports this symbol. To avoid false
++  # detection, omit this feature check for Apple targets.
++  check_function_exists("pipe2"         HAVE_PIPE2)
++endif()
++
+ if(NOT WIN32)
+   check_function_exists("if_nametoindex"  HAVE_IF_NAMETOINDEX)  # net/if.h
+   check_function_exists("realpath"        HAVE_REALPATH)
+diff --git a/configure.ac b/configure.ac
+index e9a9afd773..9d1c2b92d6 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -4127,7 +4127,6 @@ AC_CHECK_FUNCS([\
+   gettimeofday \
+   mach_absolute_time \
+   pipe \
+-  pipe2 \
+   poll \
+   sendmmsg \
+   sendmsg \
+@@ -4137,6 +4136,15 @@ AC_CHECK_FUNCS([\
+   utimes \
+ ])
+ 
++if test "$curl_cv_apple" != "yes"; then
++  dnl pipe2() is not implemented on Apple platform, but an iPhone Simulator-specific
++  dnl /usr/lib/system/libsystem_sim_kernel.dylib exports this symbol. To avoid false
++  dnl detection, omit this feature check for Apple targets.
++  AC_CHECK_FUNCS([\
++    pipe2 \
++  ])
++fi
++
+ if test "$curl_cv_native_windows" != "yes"; then
+   AC_CHECK_FUNCS([\
+     if_nametoindex \

@@ -154,9 +154,17 @@ function build() {
     tar -xzf "../${ARCHIVE}" -C "${WORKDIR}" --strip-components 1
     cd "${WORKDIR}"
 
+    DID_PATCH="0"
+
     for FILE in $(find ../../patches -name '*.patch' 2>/dev/null); do
-        patch -p1 < ${FILE}
+        patch --no-backup-if-mismatch -p1 < ${FILE}
+        DID_PATCH="1"
     done
+
+    if [[ "${DID_PATCH}" == "1" ]]; then
+        echo "Did apply patch to source, rebuilding autoconf scripts" >> "${LOG}" 2>&1
+        autoreconf -fi >> "${LOG}" 2>&1
+    fi
 
     OPENSSL_ARTIFACTS=$(readlink -f ../openssl/openssl_${ARCH}-${SDK}/artifacts)
     CA_EMBED=$(readlink -f ../../${ROOTCA_ARCHIVE})
@@ -167,7 +175,7 @@ function build() {
     export CFLAGS="-arch ${ARCH} -pipe -Os -gdwarf-2 -isysroot ${SDKDIR} -target ${ARCH}-apple-ios${IOS_TARGET}${TARGET}"
     export LDFLAGS="-arch ${ARCH} -isysroot ${SDKDIR}"
 
-    CONFIGURE_ARGS="${BUILD_ARGS} --disable-shared --enable-static --without-libpsl --with-ca-embed=${CA_EMBED} --with-openssl=${OPENSSL_ARTIFACTS} ac_cv_func_pipe2=no"
+    CONFIGURE_ARGS="${BUILD_ARGS} --disable-shared --enable-static --without-libpsl --with-ca-embed=${CA_EMBED} --with-openssl=${OPENSSL_ARTIFACTS}"
 
     echo "build variables: CC=\"${CC}\" CFLAGS=\"${CFLAGS}\" CPPFLAGS=\"${CPPFLAGS}\" LDFLAGS=\"${LDFLAGS}\"" >> "${LOG}"
     echo "configure parameters: --host=\"${HOST}-apple-darwin\" ${CONFIGURE_ARGS} --prefix $(pwd)/artifacts" >> "${LOG}"

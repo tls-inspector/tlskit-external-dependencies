@@ -21,7 +21,7 @@ if [[ "${BUILD_CURL}" == "0" && "${BUILD_OPENSSL}" == "0" ]]; then
 fi
 
 BUILD_CURL_VERSION="8.19.0"
-BUILD_OPENSSL_VERSION="3.6.1"
+BUILD_OPENSSL_VERSION="3.6.2"
 IOS_TARGET="15.0"
 
 ROOT_PATH=$(realpath .)

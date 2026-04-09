@@ -101,7 +101,7 @@ function build() {
     cd "${WORKDIR}"
 
     for FILE in $(find ../../patches -name '*.patch'); do
-        patch -p1 < ${FILE}
+        patch --no-backup-if-mismatch -p1 < ${FILE}
     done
 
     export CC=$(xcrun -find -sdk ${SDK} clang)
