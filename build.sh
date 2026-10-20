@@ -20,8 +20,8 @@ if [[ "${BUILD_CURL}" == "0" && "${BUILD_OPENSSL}" == "0" ]]; then
     echo "Error: Cannot specify both -c and -o";exit 1;
 fi
 
-BUILD_CURL_VERSION="8.21.0"
-BUILD_OPENSSL_VERSION="3.6.3"
+BUILD_CURL_VERSION="8.23.0"
+BUILD_OPENSSL_VERSION="3.6.5"
 IOS_TARGET="15.0"
 
 ROOT_PATH=$(realpath .)

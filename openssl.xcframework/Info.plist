@@ -39,7 +39,7 @@
 	<key>CFBundlePackageType</key>
 	<string>XFWK</string>
 	<key>CFBundleVersion</key>
-	<string>3.6.3</string>
+	<string>3.6.5</string>
 	<key>MinimumOSVersion</key>
 	<string>15.0</string>
 	<key>XCFrameworkFormatVersion</key>
