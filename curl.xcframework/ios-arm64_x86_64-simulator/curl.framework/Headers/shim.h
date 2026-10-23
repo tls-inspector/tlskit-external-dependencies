@@ -39,6 +39,12 @@ static inline CURLcode curl_easy_setopt_debug_function(CURL *handle, CURLoption 
     return curl_easy_setopt(handle, option, parameter);
 }
 
+/// Invoke curl_easy_setopt with a ssl ctx function parameter
+static inline CURLcode curl_easy_setopt_ssl_ctx_function(CURL *handle, CURLoption option, curl_ssl_ctx_callback parameter)
+{
+    return curl_easy_setopt(handle, option, parameter);
+}
+
 /// Invoke curl_easy_setopt with a pointer parameter
 static inline CURLcode curl_easy_setopt_pointer(CURL *handle, CURLoption option, void *parameter)
 {
